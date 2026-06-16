@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'edit_profile_page.dart';
+import 'edit_pengalaman_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -9,954 +13,331 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-      ),
-      home: const ProfilePage(),
+      home: ProfilePage(),
     );
   }
 }
 
-// =====================
-// PROFILE PAGE
-// =====================
-
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Data Profil Utama
+  String nama = 'ASEP DERI HERMAWAN';
+  String tentangSaya = 'Belajar Flutter.';
+  String pendidikan = 'Teknik Informatika Universitas Pasundan';
+  String kontak = 'asep.233040022@unpas.ac.id';
+  String pengalamanStatis = 'Freelance Web Developer';
+  String proyek = 'TechFlow-Ticketing';
+  List<String> skills = ['Flutter', 'Laravel', 'Java', 'PHP', 'UI/UX'];
+  String? imagePath;
+
+  // Data Pengalaman Dinamis (Hasil Sidebar Edit Pengalaman)
+  String? uploadedJudul;
+  String? uploadedDeskripsi;
+  String? uploadedImagePath;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // APPBAR
+      backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(
         title: const Text('Profil Saya'),
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-
-            onPressed: () {
-              showDialog(
-                context: context,
-
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('Pengaturan'),
-                    content: const Text(
-                      'Fitur pengaturan belum tersedia.',
-                    ),
-
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-        ],
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
-
-      // DRAWER
       drawer: Drawer(
         child: ListView(
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.blue,
-                    Colors.lightBlueAccent,
-                  ],
-                ),
-              ),
-
-              child: Align(
-                alignment: Alignment.bottomLeft,
-
-                child: Text(
-                  'Menu',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-
-            const ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Beranda'),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profil'),
+              onTap: () => Navigator.pop(context),
             ),
-
-            const ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Profil'),
-            ),
-
-            const ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Pengaturan'),
-            ),
-
             ListTile(
               leading: const Icon(Icons.widgets),
               title: const Text('Widget Gallery'),
-
-              onTap: () {
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_to_photos),
+              title: const Text('Upload Pengalaman'),
+              onTap: () async {
                 Navigator.pop(context);
-
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const GalleryHome(),
+                    builder: (context) => EditPengalamanPage(
+                      initialJudul: uploadedJudul,
+                      initialDeskripsi: uploadedDeskripsi,
+                      initialImagePath: uploadedImagePath,
+                    ),
                   ),
                 );
+
+                if (result != null) {
+                  setState(() {
+                    uploadedJudul = result['judul'];
+                    uploadedDeskripsi = result['deskripsi'];
+                    uploadedImagePath = result['imagePath'];
+                  });
+                }
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Pengaturan'),
+              onTap: () => Navigator.pop(context),
             ),
           ],
         ),
       ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          children: [
+            // Header Profil
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: imagePath != null && imagePath!.isNotEmpty
+                          ? (kIsWeb
+                          ? Image.network(
+                        imagePath!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset('asset/foto_saya1', fit: BoxFit.cover);
+                        },
+                      )
+                          : Image.file(
+                        File(imagePath!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset('asset/foto_saya1.jpg', fit: BoxFit.cover);
+                        },
+                      ))
+                          : Image.asset('asset/foto_saya1.jpg', fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    nama,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Mahasiswa Teknik Informatika Unpas',
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Row(
+              children: [
+                Expanded(child: StatBox(label: 'Post', value: '10')),
+                Expanded(child: StatBox(label: 'Teman', value: '100')),
+                Expanded(child: StatBox(label: 'Like', value: '1000k')),
+              ],
+            ),
+            const SizedBox(height: 30),
 
-      // BODY
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            SectionCard(
+              icon: Icons.info_outline,
+              title: 'Tentang Saya',
+              content: tentangSaya,
+            ),
+            SectionCard(
+              icon: Icons.school,
+              title: 'Pendidikan',
+              content: pendidikan,
+            ),
+            SectionCard(
+              icon: Icons.email_outlined,
+              title: 'Kontak',
+              content: kontak,
+            ),
 
-            colors: [
-              Color(0xFFE3F2FD),
-              Color(0xFFFFFFFF),
-            ],
-          ),
-        ),
+            // KARTU PENGALAMAN DINAMIS (Muncul jika ada data)
+            if (uploadedJudul != null && uploadedJudul!.isNotEmpty)
+              Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                color: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.work_history, color: Colors.blue, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Pengalaman (Terbaru)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            if (uploadedImagePath != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: kIsWeb
+                                      ? Image.network(uploadedImagePath!, width: double.infinity, height: 150, fit: BoxFit.cover)
+                                      : Image.file(File(uploadedImagePath!), width: double.infinity, height: 150, fit: BoxFit.cover),
+                                ),
+                              ),
+                            Text(uploadedJudul!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            const SizedBox(height: 4),
+                            Text(uploadedDeskripsi ?? '', style: const TextStyle(height: 1.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+            SectionCard(
+              icon: Icons.folder_open,
+              title: 'Proyek',
+              content: proyek,
+            ),
 
-          child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
-
-            children: [
-              // HEADER PROFILE
-              Center(
-                child: Column(
+            Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CircleAvatar(
-                      radius: 55,
-                      backgroundImage: NetworkImage(
-                        'https://avatars.githubusercontent.com/u/9919?s=200&v=4',
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    const Text(
-                      'Asep Deri Hermawan',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      'Mahasiswa Teknik Informatika',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey,
+                    const Icon(Icons.star, color: Colors.blue, size: 28),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Skills', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: skills.map((s) => Chip(label: Text(s))).toList(),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // STATISTIK
-              Row(
-                children: const [
-                  Expanded(
-                    child: _StatBox(
-                      label: 'Post',
-                      value: '12',
-                    ),
-                  ),
-
-                  Expanded(
-                    child: _StatBox(
-                      label: 'Teman',
-                      value: '78',
-                    ),
-                  ),
-
-                  Expanded(
-                    child: _StatBox(
-                      label: 'Like',
-                      value: '2.2K',
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // SKILLS
-              const Text(
-                'Skills',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-
-                children: const [
-                  Chip(label: Text('Flutter')),
-                  Chip(label: Text('Dart')),
-                  Chip(label: Text('Firebase')),
-                  Chip(label: Text('UI/UX')),
-                  Chip(label: Text('HTML')),
-                  Chip(label: Text('CSS')),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              const _SectionCard(
-                icon: Icons.info_outline,
-                title: 'Tentang Saya',
-                content:
-                'Saya suka belajar Flutter dan pengembangan aplikasi mobile.',
-              ),
-
-              const _SectionCard(
-                icon: Icons.school,
-                title: 'Pendidikan',
-                content:
-                'Universitas Pasundan - Semester 6',
-              ),
-
-              const _SectionCard(
-                icon: Icons.favorite,
-                title: 'Hobi & Minat',
-                content:
-                'Coding • Game • Musik • Fotografi',
-              ),
-
-              const _SectionCard(
-                icon: Icons.email,
-                title: 'Kontak',
-                content:
-                'deri@example.com\n+62 812-2104-2116',
-              ),
-
-              const SizedBox(height: 80),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
-
-      // FAB
-      floatingActionButton:
-      FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Edit profil belum tersedia',
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditProfilePage(
+                initialNama: nama,
+                initialTentang: tentangSaya,
+                initialPendidikan: pendidikan,
+                initialKontak: kontak,
+                initialProyek: proyek,
+                initialImagePath: imagePath,
               ),
             ),
           );
+
+          if (result != null) {
+            setState(() {
+              nama = result['nama'];
+              tentangSaya = result['tentang'];
+              pendidikan = result['pendidikan'];
+              kontak = result['kontak'];
+              proyek = result['proyek'];
+              imagePath = result['imagePath'];
+            });
+          }
         },
-
+        label: const Text('Edit Profil'),
         icon: const Icon(Icons.edit),
-        label: const Text('Edit'),
-      ),
-
-      // NAVIGATION BAR
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 1,
-
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-
-          NavigationDestination(
-            icon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-
-          NavigationDestination(
-            icon: Icon(Icons.message),
-            label: 'Pesan',
-          ),
-
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: 'Setting',
-          ),
-        ],
       ),
     );
   }
 }
 
-// =====================
-// STAT BOX
-// =====================
-
-class _StatBox extends StatelessWidget {
+class StatBox extends StatelessWidget {
   final String label;
   final String value;
-
-  const _StatBox({
-    required this.label,
-    required this.value,
-  });
+  const StatBox({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
+        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-
-        Text(label),
+        Text(label, style: TextStyle(color: Colors.grey.shade600)),
       ],
     );
   }
 }
 
-// =====================
-// SECTION CARD
-// =====================
-
-class _SectionCard extends StatelessWidget {
+class SectionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String content;
-
-  const _SectionCard({
-    required this.icon,
-    required this.title,
-    required this.content,
-  });
+  const SectionCard({super.key, required this.icon, required this.title, required this.content});
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 3,
       margin: const EdgeInsets.only(bottom: 12),
-
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
-
         child: Row(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: Colors.blue,
-              size: 28,
-            ),
-
+            Icon(icon, color: Colors.blue, size: 28),
             const SizedBox(width: 16),
-
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight:
-                      FontWeight.bold,
-                    ),
-                  ),
-
+                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-
-                  Text(content),
+                  Text(content, style: const TextStyle(height: 1.4)),
                 ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-// =====================
-// GALLERY HOME
-// =====================
-
-class GalleryHome extends StatelessWidget {
-  const GalleryHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final categories = [
-      ['Display', Icons.image, Colors.blue],
-      ['Input', Icons.edit, Colors.green],
-      ['Button', Icons.smart_button, Colors.orange],
-      ['Feedback', Icons.notifications, Colors.purple],
-      ['Layout', Icons.dashboard, Colors.teal],
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Widget Gallery'),
-      ),
-
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-
-        itemCount: categories.length,
-
-        separatorBuilder: (_, __) =>
-        const SizedBox(height: 8),
-
-        itemBuilder: (context, i) {
-          final name =
-          categories[i][0] as String;
-
-          final icon =
-          categories[i][1] as IconData;
-
-          final color =
-          categories[i][2] as Color;
-
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: color,
-
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                ),
-              ),
-
-              title: Text(name),
-
-              trailing:
-              const Icon(Icons.chevron_right),
-
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        CategoryPage(name: name),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// =====================
-// CATEGORY PAGE
-// =====================
-
-class CategoryPage extends StatelessWidget {
-  final String name;
-
-  const CategoryPage({
-    super.key,
-    required this.name,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Widget body;
-
-    switch (name) {
-      case 'Display':
-        body = const DisplayDemo();
-        break;
-
-      case 'Input':
-        body = const InputDemo();
-        break;
-
-      case 'Button':
-        body = const ButtonDemo();
-        break;
-
-      case 'Feedback':
-        body = const FeedbackDemo();
-        break;
-
-      case 'Layout':
-        body = const LayoutDemo();
-        break;
-
-      default:
-        body = const Center(
-          child: Text('?'),
-        );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name),
-      ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: body,
-      ),
-    );
-  }
-}
-
-// =====================
-// DISPLAY DEMO
-// =====================
-
-class DisplayDemo extends StatelessWidget {
-  const DisplayDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-
-      children: [
-        const Text(
-          'Card',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.album),
-            title: const Text('Judul Item'),
-            subtitle: const Text('Subjudul'),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        const Text(
-          'Chip',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        Wrap(
-          spacing: 8,
-
-          children: const [
-            Chip(label: Text('Flutter')),
-            Chip(label: Text('Dart')),
-            Chip(label: Text('Mobile')),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        const Divider(),
-
-        const SizedBox(height: 16),
-
-        const Text(
-          'CircleAvatar & Icon',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Row(
-          children: const [
-            CircleAvatar(
-              child: Text('A'),
-            ),
-
-            SizedBox(width: 12),
-
-            CircleAvatar(
-              backgroundColor: Colors.green,
-              child: Icon(Icons.check),
-            ),
-
-            SizedBox(width: 12),
-
-            Icon(
-              Icons.star,
-              color: Colors.amber,
-              size: 40,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// =====================
-// INPUT DEMO
-// =====================
-
-class InputDemo extends StatefulWidget {
-  const InputDemo({super.key});
-
-  @override
-  State<InputDemo> createState() =>
-      _InputDemoState();
-}
-
-class _InputDemoState extends State<InputDemo> {
-  bool checked = false;
-  bool switched = true;
-  double slider = 0.5;
-  String dropdown = 'Apel';
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-
-      children: [
-        const TextField(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Nama',
-            hintText: 'Ketik nama Anda',
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        CheckboxListTile(
-          title: const Text('Checkbox'),
-          value: checked,
-
-          onChanged: (v) {
-            setState(() {
-              checked = v ?? false;
-            });
-          },
-        ),
-
-        SwitchListTile(
-          title: const Text('Switch'),
-          value: switched,
-
-          onChanged: (v) {
-            setState(() {
-              switched = v;
-            });
-          },
-        ),
-
-        const Text('Slider'),
-
-        Slider(
-          value: slider,
-
-          onChanged: (v) {
-            setState(() {
-              slider = v;
-            });
-          },
-        ),
-
-        const SizedBox(height: 8),
-
-        DropdownButton<String>(
-          value: dropdown,
-
-          items: ['Apel', 'Jeruk', 'Mangga']
-              .map(
-                (e) => DropdownMenuItem(
-              value: e,
-              child: Text(e),
-            ),
-          )
-              .toList(),
-
-          onChanged: (v) {
-            setState(() {
-              dropdown = v!;
-            });
-          },
-        ),
-      ],
-    );
-  }
-}
-
-// =====================
-// BUTTON DEMO
-// =====================
-
-class ButtonDemo extends StatelessWidget {
-  const ButtonDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-
-      children: [
-        ElevatedButton(
-          onPressed: () {},
-          child: const Text('Elevated'),
-        ),
-
-        const SizedBox(height: 8),
-
-        FilledButton(
-          onPressed: () {},
-          child: const Text('Filled'),
-        ),
-
-        const SizedBox(height: 8),
-
-        OutlinedButton(
-          onPressed: () {},
-          child: const Text('Outlined'),
-        ),
-
-        const SizedBox(height: 8),
-
-        TextButton(
-          onPressed: () {},
-          child: const Text('Text Button'),
-        ),
-
-        const SizedBox(height: 8),
-
-        ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.send),
-          label: const Text('Dengan Icon'),
-        ),
-
-        const SizedBox(height: 8),
-
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.favorite,
-            color: Colors.red,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// =====================
-// FEEDBACK DEMO
-// =====================
-
-class FeedbackDemo extends StatelessWidget {
-  const FeedbackDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
-
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
-              const SnackBar(
-                content:
-                Text('Halo dari SnackBar'),
-              ),
-            );
-          },
-
-          child:
-          const Text('Tampilkan SnackBar'),
-        ),
-
-        const SizedBox(height: 16),
-
-        ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-
-              builder: (_) => AlertDialog(
-                title:
-                const Text('Konfirmasi'),
-
-                content: const Text(
-                  'Yakin ingin lanjut?',
-                ),
-
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-
-                    child: const Text('Batal'),
-                  ),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-
-                    child: const Text('Ya'),
-                  ),
-                ],
-              ),
-            );
-          },
-
-          child:
-          const Text('Tampilkan Dialog'),
-        ),
-
-        const SizedBox(height: 16),
-
-        const Text('Progress Indicator'),
-
-        const SizedBox(height: 8),
-
-        const LinearProgressIndicator(
-          value: 0.6,
-        ),
-
-        const SizedBox(height: 16),
-
-        const Center(
-          child:
-          CircularProgressIndicator(),
-        ),
-      ],
-    );
-  }
-}
-
-// =====================
-// LAYOUT DEMO
-// =====================
-
-class LayoutDemo extends StatelessWidget {
-  const LayoutDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-
-      children: [
-        const Text(
-          'Wrap',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Wrap(
-          spacing: 8,
-
-          children: List.generate(
-            8,
-                (i) => Container(
-              padding:
-              const EdgeInsets.all(12),
-
-              color: Colors.teal.shade100,
-
-              child: Text(
-                'Item ${i + 1}',
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        const Text(
-          'GridView',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        SizedBox(
-          height: 200,
-
-          child: GridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-
-            children: List.generate(
-              6,
-                  (i) => Container(
-                color: Colors.purple.shade100,
-                alignment: Alignment.center,
-                child: Text('${i + 1}'),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
